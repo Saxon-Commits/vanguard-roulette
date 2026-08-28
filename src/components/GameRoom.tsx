@@ -30,18 +30,37 @@ export function GameRoom() {
     sendPrivateRole,
     updateGameState,
     updatePlayerVote,
+    updateGamertag,
   } = useRoomContext();
 
   const [copiedCode, setCopiedCode] = useState(false);
-  const [gamertag] = useState(() => localStorage.getItem('vr:lastGamertag') ?? 'Guardian');
+  const [storedGamertag] = useState(() => localStorage.getItem('vr:lastGamertag'));
+  const [askGamertag, setAskGamertag] = useState(() => !localStorage.getItem('vr:lastGamertag'));
+  const [inputTag, setInputTag] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
 
-  // If not in room yet, try to reconnect using stored gamertag
+  // If already have stored gamertag and not in room yet, reconnect automatically
   useEffect(() => {
-    if (!room && code) {
-      joinRoom(code, gamertag).catch(() => navigate('/'));
+    if (!room && code && storedGamertag) {
+      joinRoom(code, storedGamertag).catch(() => navigate('/'));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function handleDirectJoin() {
+    const trimmed = inputTag.trim();
+    if (!trimmed || !code) return;
+    setIsJoining(true);
+    try {
+      localStorage.setItem('vr:lastGamertag', trimmed);
+      await joinRoom(code, trimmed);
+      setAskGamertag(false);
+    } catch (_) {
+      // error handled by useRoom
+    } finally {
+      setIsJoining(false);
+    }
+  }
 
   const me = players.find((p) => p.id === playerId);
   const isHost = me?.is_host ?? false;
@@ -79,6 +98,48 @@ export function GameRoom() {
   function handleLeave() {
     leaveRoom();
     navigate('/');
+  }
+
+  // Direct join prompt if opened via shared link without previous gamertag
+  if (!room && askGamertag && !error) {
+    return (
+      <div className="min-h-screen bg-vg-bg flex items-center justify-center p-4">
+        <GlassCard className="p-6 max-w-md w-full animate-scale-in border border-vg-cyan/30">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold text-vg-text mb-1">Join Fireteam</h2>
+            <p className="text-xs text-vg-muted">
+              Entering room <span className="font-mono text-vg-cyan font-bold tracking-widest">{code}</span>
+            </p>
+          </div>
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-vg-muted uppercase tracking-wider mb-2">
+                Your Gamertag / Bungie Name
+              </label>
+              <input
+                className="input-field"
+                placeholder="e.g. Cayde#7777"
+                value={inputTag}
+                onChange={(e) => setInputTag(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleDirectJoin()}
+                maxLength={32}
+                autoFocus
+              />
+            </div>
+            <Button
+              variant="cyan"
+              size="lg"
+              loading={isJoining}
+              onClick={handleDirectJoin}
+              disabled={!inputTag.trim()}
+              className="w-full"
+            >
+              Join Fireteam
+            </Button>
+          </div>
+        </GlassCard>
+      </div>
+    );
   }
 
   if (!room && !error) {
@@ -158,6 +219,7 @@ export function GameRoom() {
               players={players}
               presenceList={presenceList}
               currentPlayerId={playerId}
+              onUpdateGamertag={updateGamertag}
             />
           </GlassCard>
 

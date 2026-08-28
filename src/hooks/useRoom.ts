@@ -179,12 +179,18 @@ export function useRoom() {
           .from('players')
           .insert({ id: playerId, room_id: roomData.id, gamertag, is_host: false });
         if (pErr) { setError('Failed to join room.'); throw pErr; }
+      } else if (gamertag && gamertag !== myRecord.gamertag) {
+        await supabase
+          .from('players')
+          .update({ gamertag })
+          .eq('id', playerId)
+          .eq('room_id', roomData.id);
       }
 
       await fetchPlayers(roomData.id);
       await fetchGameState(roomData.id);
       setRoom(roomData);
-      subscribeToRoom(upper, roomData, myRecord?.gamertag ?? gamertag, myRecord?.is_host ?? false);
+      subscribeToRoom(upper, roomData, gamertag || myRecord?.gamertag || 'Guardian', myRecord?.is_host ?? false);
     },
     [playerId, fetchPlayers, fetchGameState, subscribeToRoom]
   );
@@ -235,6 +241,29 @@ export function useRoom() {
     [playerId]
   );
 
+  const updateGamertag = useCallback(
+    async (newGamertag: string) => {
+      const trimmed = newGamertag.trim();
+      if (!trimmed || !room) return;
+      localStorage.setItem('vr:lastGamertag', trimmed);
+      await supabase
+        .from('players')
+        .update({ gamertag: trimmed })
+        .eq('id', playerId)
+        .eq('room_id', room.id);
+      await fetchPlayers(room.id);
+      if (channelRef.current) {
+        const me = players.find((p) => p.id === playerId);
+        await channelRef.current.track({
+          playerId,
+          gamertag: trimmed,
+          isHost: me?.is_host ?? false,
+        } satisfies PresenceUser);
+      }
+    },
+    [room, playerId, players, fetchPlayers]
+  );
+
   const clearError = useCallback(() => setError(null), []);
 
   // Cleanup on unmount
@@ -260,6 +289,7 @@ export function useRoom() {
     sendPrivateRole,
     updateGameState,
     updatePlayerVote,
+    updateGamertag,
     clearError,
   };
 }

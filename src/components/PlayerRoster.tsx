@@ -1,4 +1,5 @@
-import { Crown, Wifi, WifiOff } from 'lucide-react';
+import { useState } from 'react';
+import { Crown, Wifi, WifiOff, Edit2, Check, X } from 'lucide-react';
 import { Badge } from './ui/Badge';
 import type { Player, PresenceUser } from '../types';
 
@@ -6,10 +7,25 @@ interface PlayerRosterProps {
   players: Player[];
   presenceList: PresenceUser[];
   currentPlayerId: string;
+  onUpdateGamertag?: (newGamertag: string) => void;
 }
 
-export function PlayerRoster({ players, presenceList, currentPlayerId }: PlayerRosterProps) {
+export function PlayerRoster({ players, presenceList, currentPlayerId, onUpdateGamertag }: PlayerRosterProps) {
   const onlineIds = new Set(presenceList.map((p) => p.playerId));
+  const [editingMe, setEditingMe] = useState(false);
+  const [newGamertag, setNewGamertag] = useState('');
+
+  function startEditing(currentName: string) {
+    setNewGamertag(currentName);
+    setEditingMe(true);
+  }
+
+  function saveEditing() {
+    if (newGamertag.trim() && onUpdateGamertag) {
+      onUpdateGamertag(newGamertag.trim());
+    }
+    setEditingMe(false);
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -53,15 +69,45 @@ export function PlayerRoster({ players, presenceList, currentPlayerId }: PlayerR
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <span className={[
-                  'text-sm font-medium truncate',
-                  isMe ? 'text-vg-cyan' : 'text-vg-text',
-                ].join(' ')}>
-                  {player.gamertag}
-                </span>
-                {isMe && <span className="text-xs text-vg-muted">(you)</span>}
-              </div>
+              {isMe && editingMe ? (
+                <div className="flex items-center gap-1.5">
+                  <input
+                    className="bg-vg-surface border border-vg-cyan/50 rounded-lg px-2 py-0.5 text-xs text-vg-text w-full focus:outline-none"
+                    value={newGamertag}
+                    onChange={(e) => setNewGamertag(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && saveEditing()}
+                    maxLength={32}
+                    autoFocus
+                  />
+                  <button onClick={saveEditing} className="text-vg-green p-1 hover:brightness-125">
+                    <Check className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => setEditingMe(false)} className="text-vg-muted p-1 hover:text-vg-text">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <span className={[
+                    'text-sm font-medium truncate',
+                    isMe ? 'text-vg-cyan' : 'text-vg-text',
+                  ].join(' ')}>
+                    {player.gamertag}
+                  </span>
+                  {isMe && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-vg-muted">(you)</span>
+                      <button
+                        onClick={() => startEditing(player.gamertag)}
+                        className="text-vg-subtle hover:text-vg-cyan transition-colors p-0.5"
+                        title="Change Gamertag"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-1.5 flex-shrink-0">

@@ -49,5 +49,6 @@ export interface RoomContextValue {
   sendPrivateRole: (targetPlayerId: string, role: PlayerRole) => void;
   updateGameState: (update: Partial<GameState>) => Promise<void>;
   updatePlayerVote: (targetId: string) => Promise<void>;
+  updateGamertag: (newGamertag: string) => Promise<void>;
   clearError: () => void;
 }

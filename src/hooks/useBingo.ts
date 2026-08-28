@@ -98,13 +98,13 @@ export function useBingo(roomCode: string, playerId: string) {
     });
   }, []);
 
-  const shuffleBoard = useCallback(() => {
+  const shuffleBoard = useCallback((customPool?: string[]) => {
     const anyMarked = state.marked.some(Boolean);
-    if (anyMarked) {
+    if (anyMarked && !customPool) {
       if (!confirm('Shuffle the board? Your marked cells will be cleared.')) return;
     }
     const newState: BingoState = {
-      cells: getShuffledBingoCells(),
+      cells: getShuffledBingoCells(customPool),
       marked: Array(16).fill(false),
       bingos: [],
     };

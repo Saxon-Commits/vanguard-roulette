@@ -1,5 +1,7 @@
-import { Check, Shuffle, Trophy } from 'lucide-react';
+import { useState } from 'react';
+import { Check, Shuffle, Trophy, SlidersHorizontal } from 'lucide-react';
 import { Button } from './ui/Button';
+import { BingoEditorModal } from './BingoEditorModal';
 
 interface BingoGridProps {
   cells: string[];
@@ -7,16 +9,17 @@ interface BingoGridProps {
   bingos: number[];
   hasBingo: boolean;
   onToggle: (index: number) => void;
-  onShuffle: () => void;
+  onShuffle: (customPool?: string[]) => void;
 }
 
 export function BingoGrid({ cells, marked, bingos, hasBingo, onToggle, onShuffle }: BingoGridProps) {
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const winnerSet = new Set(bingos);
 
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-vg-text">Raid Bingo</h3>
           {hasBingo && (
@@ -26,15 +29,32 @@ export function BingoGrid({ cells, marked, bingos, hasBingo, onToggle, onShuffle
             </div>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          icon={<Shuffle className="w-3.5 h-3.5" />}
-          onClick={onShuffle}
-        >
-          Shuffle
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
+            onClick={() => setIsEditorOpen(true)}
+          >
+            Edit Cards
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<Shuffle className="w-3.5 h-3.5" />}
+            onClick={() => onShuffle()}
+          >
+            Shuffle
+          </Button>
+        </div>
       </div>
+
+      {/* Bingo Editor Modal */}
+      <BingoEditorModal
+        isOpen={isEditorOpen}
+        onClose={() => setIsEditorOpen(false)}
+        onPoolSaved={(newPool) => onShuffle(newPool)}
+      />
 
       {/* Column labels */}
       <div className="grid grid-cols-4 gap-1.5 px-0.5">

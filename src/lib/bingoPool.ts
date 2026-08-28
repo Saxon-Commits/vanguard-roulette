@@ -85,7 +85,32 @@ export const BINGO_POOL: string[] = [
   "Someone celebrates prematurely",
 ];
 
-export function getShuffledBingoCells(): string[] {
-  const shuffled = [...BINGO_POOL].sort(() => Math.random() - 0.5);
+const CUSTOM_POOL_KEY = 'vr:custom_bingo_pool';
+
+export function getCustomBingoPool(): string[] {
+  try {
+    const saved = localStorage.getItem(CUSTOM_POOL_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length >= 16) {
+        return parsed;
+      }
+    }
+  } catch (_) { /* fallback to default */ }
+  return [...BINGO_POOL];
+}
+
+export function saveCustomBingoPool(pool: string[]): void {
+  localStorage.setItem(CUSTOM_POOL_KEY, JSON.stringify(pool));
+}
+
+export function resetCustomBingoPool(): string[] {
+  localStorage.removeItem(CUSTOM_POOL_KEY);
+  return [...BINGO_POOL];
+}
+
+export function getShuffledBingoCells(pool?: string[]): string[] {
+  const source = pool && pool.length >= 16 ? pool : getCustomBingoPool();
+  const shuffled = [...source].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, 16);
 }

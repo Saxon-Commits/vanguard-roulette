@@ -3,7 +3,7 @@ import type { Player, PlayerRole, GameState } from '../types';
 import { playSpinStart, playRevealSting } from '../lib/audio';
 
 interface UseSaboteurOptions {
-  playerId?: string;
+  playerId: string;
   players: Player[];
   gameState: GameState | null;
   isHost: boolean;
@@ -13,7 +13,7 @@ interface UseSaboteurOptions {
 }
 
 export function useSaboteur({
-  playerId: _playerId,
+  playerId,
   players,
   gameState,
   isHost,
@@ -79,6 +79,8 @@ export function useSaboteur({
 
     // Pick a random player as saboteur
     const saboteur = players[Math.floor(Math.random() * players.length)];
+    const myAssignedRole: PlayerRole = playerId === saboteur.id ? 'saboteur' : 'innocent';
+    setMyRole(myAssignedRole);
 
     // Send private roles to each player
     players.forEach((p) => {
@@ -90,7 +92,7 @@ export function useSaboteur({
 
     setIsSpinning(false);
     broadcastEvent('SPIN_END');
-  }, [isHost, players, broadcastEvent, sendPrivateRole, updateGameState]);
+  }, [isHost, players, playerId, broadcastEvent, sendPrivateRole, updateGameState]);
 
   // Host: reveal the saboteur
   const revealSaboteur = useCallback(async () => {

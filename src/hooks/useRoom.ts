@@ -201,14 +201,24 @@ export function useRoom() {
 
   // Send a role privately to one player via their personal channel
   const sendPrivateRole = useCallback((targetPlayerId: string, role: PlayerRole) => {
+    if (targetPlayerId === playerId) {
+      window.dispatchEvent(new CustomEvent('vr:role', { detail: { role } }));
+      return;
+    }
     const ch = supabase.channel(`vr-private:${targetPlayerId}`);
     ch.subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        ch.send({ type: 'broadcast', event: 'ROLE_ASSIGNED', payload: { role } });
-        setTimeout(() => supabase.removeChannel(ch), 3000);
+        ch.send({
+          type: 'broadcast',
+          event: 'ROLE_ASSIGNED',
+          payload: { role },
+        });
+        setTimeout(() => {
+          supabase.removeChannel(ch);
+        }, 3000);
       }
     });
-  }, []);
+  }, [playerId]);
 
   const updateGameState = useCallback(
     async (update: Partial<GameState>) => {

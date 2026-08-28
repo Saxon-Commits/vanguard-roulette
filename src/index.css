@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  body {
+    @apply bg-vg-bg text-vg-text font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-vg-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-vg-subtle; }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/[0.04] backdrop-blur-md border border-white/[0.08] rounded-2xl;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+
+  .glass-sm {
+    @apply bg-white/[0.04] backdrop-blur-sm border border-white/[0.07] rounded-xl;
+  }
+
+  .neon-text-cyan {
+    color: #00d4ff;
+    text-shadow: 0 0 20px rgba(0,212,255,0.6);
+  }
+
+  .neon-text-amber {
+    color: #f5a623;
+    text-shadow: 0 0 20px rgba(245,166,35,0.6);
+  }
+
+  .neon-text-red {
+    color: #ff4444;
+    text-shadow: 0 0 20px rgba(255,68,68,0.6);
+  }
+
+  .btn-primary {
+    @apply relative px-6 py-3 rounded-xl font-semibold text-sm tracking-wide
+           transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-cyan {
+    @apply btn-primary bg-vg-cyan text-vg-bg hover:shadow-cyan-glow;
+  }
+
+  .btn-amber {
+    @apply btn-primary bg-vg-amber text-vg-bg hover:shadow-amber-glow;
+  }
+
+  .btn-red {
+    @apply btn-primary bg-vg-red text-white hover:shadow-red-glow;
+  }
+
+  .btn-ghost {
+    @apply btn-primary bg-white/[0.05] text-vg-muted border border-white/[0.08]
+           hover:bg-white/[0.09] hover:text-vg-text;
+  }
+
+  .input-field {
+    @apply w-full bg-vg-surface border border-vg-border rounded-xl px-4 py-3
+           text-vg-text placeholder-vg-subtle text-sm
+           focus:outline-none focus:border-vg-cyan focus:ring-1 focus:ring-vg-cyan/30
+           transition-colors duration-200;
+  }
+
+  .code-badge {
+    @apply font-mono text-2xl font-bold tracking-[0.3em] text-vg-cyan;
+    text-shadow: 0 0 30px rgba(0,212,255,0.5);
+  }
+}
